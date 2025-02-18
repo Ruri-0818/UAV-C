@@ -91,7 +91,7 @@ def generate_distortion(args, sequence_directory, distortion, images, severity, 
         os.makedirs(severity_dir) 
 
     for i in range(len(images)):
-        print(i)
+        # print(i)
         frame = images[i]
         # generate frames
         if distortion == 'frost':
