@@ -18,7 +18,7 @@ Composite_distortions = (
     'rain_defocusBlur_gaussianNoise'
 )
 
-def generate_composite_distortions(args, sequence_directory, distortion, images, severity):
+def generate_composite_distortions(args, sequence_directory, distortion, images, severity, image_name=None):
     # print('generate composite distributions',distortion)
     distortion_path = f'{args.output_dir}/{sequence_directory}/{distortion}'
     # create distortion path
@@ -38,11 +38,15 @@ def generate_composite_distortions(args, sequence_directory, distortion, images,
     for i in range(len(images)):
         frame = images[i]
         corrupted_frame = MAP[distortion](frame, severity)
-        cv2.imwrite(f'{severity_dir}/image{i:06}_{distortion}.jpg', corrupted_frame)
-        print('writing image to ', f'{severity_dir}/image{i:06}_{distortion}.jpg')
+        if image_name is None:
+            cv2.imwrite(f'{severity_dir}/image{i:06}_{distortion}.jpg', corrupted_frame)
+            print('writing image to ', f'{severity_dir}/image{i:06}_{distortion}.jpg')
+        else:
+            cv2.imwrite(f'{severity_dir}/{image_name}', corrupted_frame)
+            print('writing image to ', f'{severity_dir}/{image_name}')
 
 
-def generate_depth_distortion(args, sequence_directory, distortion, images, severity):
+def generate_depth_distortion(args, sequence_directory, distortion, images, severity, image_name=None):
     MAP = {
             'fog': apply_fog_corruption,
             'fog_shot_noise': apply_fog_corruption_shot_noise
@@ -66,10 +70,14 @@ def generate_depth_distortion(args, sequence_directory, distortion, images, seve
         severity_dir = os.path.join(distortion_dir, str(severity))
         if not os.path.exists(severity_dir):
             os.makedirs(severity_dir) 
-        cv2.imwrite(f'{severity_dir}/image{i:06}_{distortion}.jpg', corrupted_frame)
-        print('writing image to ', f'{severity_dir}/image{i:06}_{distortion}.jpg')
+        if image_name is None:
+            cv2.imwrite(f'{severity_dir}/image{i:06}_{distortion}.jpg', corrupted_frame)
+            print('writing image to ', f'{severity_dir}/image{i:06}_{distortion}.jpg')
+        else:
+            cv2.imwrite(f'{severity_dir}/{image_name}', corrupted_frame)
+            print('writing image to ', f'{severity_dir}/{image_name}')
 
-def generate_distortion(args, sequence_directory, distortion, images, severity):
+def generate_distortion(args, sequence_directory, distortion, images, severity, image_name=None):
     frames = []
     idx = np.random.randint(5)
     distortion_dir = os.path.join(args.output_dir, sequence_directory, distortion)
@@ -96,8 +104,12 @@ def generate_distortion(args, sequence_directory, distortion, images, severity):
             corrupted_frame = clipped_zoom_blur_seq(images, severity, i)
         else:
             corrupted_frame = corrupt(frame, severity, corruption_name=distortion)
-        cv2.imwrite(f'{severity_dir}/image{i:06}_{distortion}.jpg', corrupted_frame)
-        print('writing image to ', f'{severity_dir}/image{i:06}_{distortion}.jpg')
+        if image_name is None:
+            cv2.imwrite(f'{severity_dir}/image{i:06}_{distortion}.jpg', corrupted_frame)
+            print('writing image to ', f'{severity_dir}/image{i:06}_{distortion}.jpg')
+        else:
+            cv2.imwrite(f'{severity_dir}/{image_name}', corrupted_frame)
+            print('writing image to ', f'{severity_dir}/{image_name}')
 
 # Map imageNet-C distortions to the appropriate function (corrupt)
 corruption_dict = {distortion: generate_distortion for distortion in Distortions1}
@@ -106,11 +118,11 @@ corruption_dict.update({distortion: generate_composite_distortions for distortio
 # Map depth distortions to the appropriate function (distort_depth_image)
 corruption_dict.update({depth_distortion: generate_depth_distortion for depth_distortion in Depth_distortions})
 
-def distort(args, sequence_directory, corruption_name, images, severity): # a wrapper for the distortions
+def distort(args, sequence_directory, corruption_name, images, severity, image_name=None): # a wrapper for the distortions
     """
     :param severity: strength with which to corrupt x; an integer in (1,3,5)
     """
 
-    corruption_dict[corruption_name](args, sequence_directory, corruption_name, images, severity)
+    corruption_dict[corruption_name](args, sequence_directory, corruption_name, images, severity, image_name)
 
 
